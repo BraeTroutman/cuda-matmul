@@ -59,12 +59,15 @@ __global__ void matmul(int* A, int* B, int* C, int M) {
 
 int main(int argc, char **argv)
 {	
-	if (argc != 2) {
-		printf("Command style: %s <matrix_size>\n", argv[0]);
+	if (argc != 4) {
+		printf("Multiply MxN matrix by NxK matrix: %s M N K\n", argv[0]);
 		return 0;
 	}
 
-	int N = atoi(argv[1]);
+	int M = atoi(argv[1]);
+	int N = atoi(argv[2]);
+	int K = atoi(argv[3]);
+
 	int A[N][N], B[N][N], i, j;
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
