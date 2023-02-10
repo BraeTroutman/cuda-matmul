@@ -13,16 +13,6 @@ vector<int> seqMatmul(vector<int> A, vector<int> B, int M, int N, int K) {
 		for (j = 0; j < K; j++) {
 			C[i*K + j] = 0;
 			for (k = 0; k < N; k++) {
-//				printf("C[%i][%i] += A[%i][%i] * B[%i][%i]\n",
-//						i,j,
-//						i,k,
-//						k,j);
-//				printf("%d = %d * %d\n",
-//						A[i*N+k] * B[k*K+j],
-//						A[i*N+k],
-//						B[k*K+j]
-//				);
-
 				C[i*K + j] += A[i*N + k] * B[k*K + j];
 			}
 		}
@@ -56,23 +46,13 @@ __global__ void matmul(int* A, int* B, int* C, int M, int N, int K) {
   	unsigned int row, col;
   	row = blockIdx.y * blockDim.y + threadIdx.y;
   	col = blockIdx.x * blockDim.x + threadIdx.x;
- 	printf("(%i,%i)\n", row, col);	
+
 	if (row < M && col < K) {
 	  	unsigned int idx = col + row * K;
 
 		// C[i][j] = SUM[k](A[i][k] * B[k][j])
 		C[idx] = 0;
 	  	for (int i = 0; i < N; i++) {
-			printf("C[%i][%i] += A[%i][%i] * B[%i][%i]\n",
-					row, col,
-					row, i,
-					i, col);
-			printf("%d = %d * %d\n",
-					A[row*N+i] * B[i*K+col],
-					A[row*N+i],
-					B[i*K+col]
-			);
-
 			C[idx] += A[row*N + i] * B[i*K + col];
 		}
 	}
@@ -143,11 +123,6 @@ int main(int argc, char **argv)
 
 	vector<int> checkC = seqMatmul(A_data, B_data, M, N, K);
 
-	cout << "A" << endl;
-	printMat(A_data, M, N);
-	cout << "B" << endl;
-	printMat(B_data, N, K);
-	
 	if (C_data != checkC)
 		printMat(C_data, checkC, M, K);
 
