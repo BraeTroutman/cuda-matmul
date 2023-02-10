@@ -5,54 +5,75 @@
 
 using namespace std;
 
-vector<int> seqMatmul(vector<int> A, vector<int> B, int M) {
-	vector<int> C(A.size());
+vector<int> seqMatmul(vector<int> A, vector<int> B, int M, int N, int K) {
+	vector<int> C(M*K*sizeof(int));
 
 	int i,j,k;
 	for (i = 0; i < M; i++) {
-		for (j = 0; j < M; j++) {
-			for (k = 0; k < M; k++) {
-				C[i*M + j] += A[i*M + k] * B[k*M + j];
+		for (j = 0; j < K; j++) {
+			C[i*K + j] = 0;
+			for (k = 0; k < N; k++) {
+//				printf("C[%i][%i] += A[%i][%i] * B[%i][%i]\n",
+//						i,j,
+//						i,k,
+//						k,j);
+//				printf("%d = %d * %d\n",
+//						A[i*N+k] * B[k*K+j],
+//						A[i*N+k],
+//						B[k*K+j]
+//				);
+
+				C[i*K + j] += A[i*N + k] * B[k*K + j];
 			}
 		}
 	}
 	return C;
 }
 
-void printMat(vector<int> A, vector<int> B, int N) {
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < N; j++) {
-			if (A[i*N+j] == B[i*N+j]) {
-				printf("%-6d", A[i*N+j]);
+void printMat(vector<int> A, vector<int> B, int H, int W) {
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (A[i*W+j] == B[i*W+j]) {
+				printf("%2d/%-2d ", A[i*W+j], B[i*W+j]);
 			} else {
-				printf("%2d/%-2d ", A[i*N+j], B[i*N+j]);
+				printf("%2d/%-2d ", A[i*W+j], B[i*W+j]);
 			}
 		}
 		puts("");
 	}
 }
 
-void printMat(vector<int> M, int N) {
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < N; j++) {
-			printf("%-5d", M[i*N + j]);
+void printMat(vector<int> A, int H, int W) {
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			printf("%-5d", A[i*W + j]);
 		}
 		puts("");
 	}
 }
 
-__global__ void matmul(int* A, int* B, int* C, int M) {
+__global__ void matmul(int* A, int* B, int* C, int M, int N, int K) {
   	unsigned int row, col;
   	row = blockIdx.y * blockDim.y + threadIdx.y;
   	col = blockIdx.x * blockDim.x + threadIdx.x;
- 	
-	if (row < M && col < M) {
-	  	unsigned int idx = col + row * M;
-	       	
-		// C[i][j] = SUM[k](A[i][k] * B[k][j])	
-	  	int k;
-	  	for (k = 0; k < M; k++) {
-			C[idx] += A[row*M + k] * B[k*M + col];
+ 	printf("(%i,%i)\n", row, col);	
+	if (row < M && col < K) {
+	  	unsigned int idx = col + row * K;
+
+		// C[i][j] = SUM[k](A[i][k] * B[k][j])
+		C[idx] = 0;
+	  	for (int i = 0; i < N; i++) {
+			printf("C[%i][%i] += A[%i][%i] * B[%i][%i]\n",
+					row, col,
+					row, i,
+					i, col);
+			printf("%d = %d * %d\n",
+					A[row*N+i] * B[i*K+col],
+					A[row*N+i],
+					B[i*K+col]
+			);
+
+			C[idx] += A[row*N + i] * B[i*K + col];
 		}
 	}
 }
@@ -76,7 +97,7 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < K; j++) {
-			B[i][j] rand() % 10;
+			B[i][j] = rand() % 10;
 		}
 	}	
 
@@ -92,35 +113,44 @@ int main(int argc, char **argv)
 		}
 	}
 
-	vector<int> C_data(A_data.size());
+	unsigned int Asize = A_data.size() * sizeof(int);
+	unsigned int Bsize = B_data.size() * sizeof(int);
+	unsigned int Csize = M * K * sizeof(int);
 
-	unsigned int size = A_data.size() * sizeof(int);
+	vector<int> C_data(Csize);
 
 	int *dev_A, *dev_B, *dev_C;
 
-	cudaMalloc((void**) &dev_A, size);
-	cudaMalloc((void**) &dev_B, size);
-	cudaMalloc((void**) &dev_C, size);
+	cudaMalloc((void**) &dev_A, Asize);
+	cudaMalloc((void**) &dev_B, Bsize);
+	cudaMalloc((void**) &dev_C, Csize);
 
-	cudaMemcpy(dev_A, A_data.data(), size, cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_B, B_data.data(), size, cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_A, A_data.data(), Asize, cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_B, B_data.data(), Bsize, cudaMemcpyHostToDevice);
 
-	dim3 gridSize(1,1), blockSize(N,N);
+	dim3 gridSize(1,1), blockSize(K,M);
 
-	if (N > 32) {
-		gridSize.x = gridSize.y = ceil((double)N/32);
+	if (M > 32 || K > 32) {
+		gridSize.x = ceil((double)K/32);
+		gridSize.y = ceil((double)M/32);
 		blockSize.x = blockSize.y = 32;
 	}
-
-	matmul<<<gridSize,blockSize>>>(dev_A, dev_B, dev_C, N);
+	
+	matmul<<<gridSize,blockSize>>>(dev_A, dev_B, dev_C, M, N, K);
 	cudaDeviceSynchronize();
 
-	cudaMemcpy(C_data.data(), dev_C, size, cudaMemcpyDeviceToHost);
-	
-	if (C_data != A_data) {
-		printMat(A_data, C_data, N);
-	}
+	cudaMemcpy(C_data.data(), dev_C, Csize, cudaMemcpyDeviceToHost);
 
-	assert(C_data == A_data);
+	vector<int> checkC = seqMatmul(A_data, B_data, M, N, K);
+
+	cout << "A" << endl;
+	printMat(A_data, M, N);
+	cout << "B" << endl;
+	printMat(B_data, N, K);
+	
+	if (C_data != checkC)
+		printMat(C_data, checkC, M, K);
+
+	assert(C_data == checkC);
 }
 
