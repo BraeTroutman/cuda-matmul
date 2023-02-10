@@ -9,6 +9,6 @@ bin/matmul: src/matmul.cu
 clean:
 	-rm bin/*
 
-test: 
+test: $(targets)
 	bash scripts/test.bash
 
