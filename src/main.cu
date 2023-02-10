@@ -34,29 +34,8 @@ int main(int argc, char **argv)
 	int N = atoi(argv[2]);
 	int K = atoi(argv[3]);
 
-	int A[M][N], B[N][K];
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			A[i][j] = rand() % 10;
-		}
-	}
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < K; j++) {
-			B[i][j] = rand() % 10;
-		}
-	}	
-
-	vector<int> A_data, B_data;
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			A_data.push_back(A[i][j]);
-		}
-	}
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < K; j++) {
-			B_data.push_back(B[i][j]);
-		}
-	}
+	vector<int> A_data = matrixAlloc(M,N);
+	vector<int> B_data = matrixAlloc(N,K);	
 
 	unsigned int Asize = A_data.size() * sizeof(int);
 	unsigned int Bsize = B_data.size() * sizeof(int);

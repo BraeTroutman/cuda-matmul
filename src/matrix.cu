@@ -42,3 +42,15 @@ void printMat(std::vector<int> A, int H, int W) {
 	}
 }
 
+std::vector<int> matrixAlloc(int H, int W) {
+	std::vector<int> M(H*W);
+
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			M[i*W+j] = rand() % 10;
+		}
+	}
+
+	return M;
+}
+
