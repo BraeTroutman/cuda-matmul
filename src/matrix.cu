@@ -5,7 +5,7 @@
 #include "matrix.h"
 
 std::vector<int> seqMatmul(std::vector<int> A, std::vector<int> B, int M, int N, int K) {
-	std::vector<int> C(M*K*sizeof(int));
+	std::vector<int> C(M*K);
 
 	int i,j,k;
 	for (i = 0; i < M; i++) {

@@ -20,7 +20,7 @@ __global__ void kernel(int* A, int* B, int* C, int M, int N, int K) {
 }
 
 std::vector<int> cudaMatmul(std::vector<int> &A, std::vector<int>& B, int M, int N, int K) {
-	std::vector<int> C;
+	std::vector<int> C(M*K);
 
 	int *d_A, *d_B, *d_C;
 
