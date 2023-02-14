@@ -33,13 +33,13 @@ int main(int argc, char **argv)
 		printMat(A, M, N);
 		cout << "B" << endl;
 		printMat(B, N, K);
-		cout << "C:" << C.size() << endl;
+		cout << "C" << endl;
 		printMat(C, M, K);
 	}
 
 	if (opts.check) {
 		vector<int> checkC = seqMatmul(A, B, M, N, K);
-		printMat(C, checkC, M, K);
+		if (C != checkC) printMat(C, checkC, M, K);
 	}
 }
 
