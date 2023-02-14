@@ -1,22 +1,21 @@
 targets=bin/matmul
+sources=$(shell find src -type f -name *.cu)
+objects=$(patsubst src/%,build/%,$(sources:.cu=.o))
 
-.phony: all clean test
+.phony: all clean test run
 all: $(targets)
 
-bin/matmul: build/main.o build/matrix.o build/kernel.o
+bin/matmul: $(objects)
 	nvcc -o $@ $^ 
 
-build/main.o: src/main.cu
-	nvcc -I include -o $@ -c src/main.cu
-
-build/matrix.o: src/matrix.cu
-	nvcc -I include -o $@ -c src/matrix.cu
-
-build/kernel.o: src/kernel.cu
+build/%.o: src/%.cu
 	nvcc -I include -o $@ -c $^
 
+run: $(targets)
+	bash scripts/run.sh
+
 clean:
-	-rm bin/*
+	-rm bin/* build/*
 
 test: $(targets)
 	bash scripts/test.bash
