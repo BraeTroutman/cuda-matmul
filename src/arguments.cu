@@ -1,14 +1,13 @@
 #include <getopt.h>
 #include <iostream>
+#include <string.h>
 
 #include "arguments.h"
 
 options_t parse_args(int argc, char* argv[]) {
 	options_t options;
-	options.check = 0;
-	options.verbose = 0;
-	options.timed = 0;
-	
+	memset(&options, 0, sizeof(options_t));
+
 	int c;
 
 	while ((c = getopt(argc, argv, "cvt")) != -1) {
