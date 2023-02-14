@@ -5,7 +5,7 @@ typedef struct args {
 	char verbose;
 	char timed;
 	char check;
-	char** remaining;
+	int M, N, K;
 } options_t;
 
 options_t parse_args(int argc, char* argv[]);
