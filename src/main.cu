@@ -28,7 +28,8 @@ int main(int argc, char **argv)
 	if (opts.check) {
 		vector<int> checkC = seqMatmul(A, B, opts.M, opts.N, opts.K);
 		if (C != checkC) {
-			printMat(C, checkC, opts.M, opts.K);
+			if (opts.verbose) printMat(C, checkC, opts.M, opts.K);
+			puts("failure.");
 		} else {
 			puts("success!");
 		}
