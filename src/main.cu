@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	
 	vector<int> A = matrixAlloc(opts.M,opts.N);
 	vector<int> B = matrixAlloc(opts.N,opts.K);	
-	vector<int> C = cudaMatmul(A, B, opts.M, opts.N, opts.K);
+	vector<int> C = cudaMatmul(A, B, opts.M, opts.N, opts.K, opts.timed);
 	
 	if (opts.verbose) {
 		cout << "A" << endl;
