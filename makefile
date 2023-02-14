@@ -1,7 +1,7 @@
 targets=bin/matmul
 sources=$(shell find src -type f -name *.cu)
 objects=$(patsubst src/%,build/%,$(sources:.cu=.o))
-dbobjects=$(patsubst src/%,build/%,$(sources:.cu=.do))
+dbobjects=$(patsubst src/%,build/%,$(sources:.cu=.debug.o))
 
 .phony: all clean test run debug
 all: $(targets)
@@ -16,7 +16,7 @@ bin/debug: $(dbobjects)
 build/%.o: src/%.cu
 	nvcc -I include -o $@ -c $^
 
-build/%.do: src/%.cu
+build/%.debug.o: src/%.cu
 	nvcc -I include -g -o $@ -c $^
 
 run: $(targets)
