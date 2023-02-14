@@ -1,5 +1,6 @@
 #include <vector>
 #include <cuda.h>
+#include <iostream>
 
 #include "kernel.h"
 
@@ -19,10 +20,16 @@ __global__ void kernel(int* A, int* B, int* C, int M, int N, int K) {
 	}
 }
 
-std::vector<int> cudaMatmul(std::vector<int> &A, std::vector<int>& B, int M, int N, int K) {
+std::vector<int> cudaMatmul(std::vector<int> &A, std::vector<int>& B, int M, int N, int K, char timed) {
 	std::vector<int> C(M*K);
 
 	int *d_A, *d_B, *d_C;
+	cudaEvent_t start, stop;	
+	if (timed) {
+		cudaEventCreate(&start);
+		cudaEventCreate(&stop);
+		cudaEventRecord(start, 0);
+	}
 
 	cudaMalloc((void**) &d_A, sizeof(int)*M*N);
 	cudaMalloc((void**) &d_B, sizeof(int)*N*K);
@@ -42,8 +49,16 @@ std::vector<int> cudaMatmul(std::vector<int> &A, std::vector<int>& B, int M, int
 	kernel<<<gridSize, blockSize>>>(d_A, d_B, d_C, M, N, K);
 	cudaDeviceSynchronize();
 
+	if (timed) {
+		cudaEventRecord(stop,0);
+		cudaEventSynchronize(stop);
+		float diff;
+		cudaEventElapsedTime(&diff, start, stop);
+		printf("time: %f ms\n", diff);
+	}
+	
 	cudaMemcpy(C.data(), d_C, sizeof(int)*M*K, cudaMemcpyDeviceToHost);
-
+	
 	return C;
 }
 
