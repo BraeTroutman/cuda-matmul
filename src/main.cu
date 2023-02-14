@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <cuda.h>
 #include <assert.h>
 
 #include "matrix.h"
