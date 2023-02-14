@@ -26,5 +26,5 @@ clean:
 	-rm bin/* build/*
 
 test: $(targets)
-	bash scripts/test.bash
+	bash scripts/test.sh
 
