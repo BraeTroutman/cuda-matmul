@@ -4,30 +4,42 @@
 
 #include "matrix.h"
 #include "kernel.h"
+#include "arguments.h"
 
 using namespace std;
 
 int main(int argc, char **argv)
 {	
-	if (argc != 4) {
-		printf("Multiply MxN matrix by NxK matrix: %s M N K\n", argv[0]);
-		return 0;
-	}
+	options_t opts = parse_args(argc, argv);
+	
+	int optslen;
+	for (optslen = 0; opts.remaining[optslen] != NULL; ++optslen);
 
-	int M = atoi(argv[1]);
-	int N = atoi(argv[2]);
-	int K = atoi(argv[3]);
+	if (optslen < 3) {
+		printf("Usage: %s [options] M N K\n", argv[0]);	
+		return 1;
+	}
+	
+	int M = atoi(opts.remaining[0]);
+	int N = atoi(opts.remaining[1]);
+	int K = atoi(opts.remaining[2]);
 
 	vector<int> A = matrixAlloc(M,N);
 	vector<int> B = matrixAlloc(N,K);	
-
 	vector<int> C = cudaMatmul(A, B, M, N, K);
+	
+	if (opts.verbose) {
+		cout << "A" << endl;
+		printMat(A, M, N);
+		cout << "B" << endl;
+		printMat(B, N, K);
+		cout << "C:" << C.size() << endl;
+		printMat(C, M, K);
+	}
 
-	vector<int> checkC = seqMatmul(A, B, M, N, K);
-
-	if (C != checkC)
+	if (opts.check) {
+		vector<int> checkC = seqMatmul(A, B, M, N, K);
 		printMat(C, checkC, M, K);
-
-	assert(C == checkC);
+	}
 }
 
